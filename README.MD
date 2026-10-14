@@ -46,3 +46,9 @@ To learn more about **Refine**, please check out the [Documentation](https://ref
 ## License
 
 MIT
+
+## Local backend integration
+
+Start `classroom-backend` on port 8000, set `VITE_API_URL=/api` in the frontend `.env`, and run `npm run dev`. Vite proxies `/api` to the backend. The subjects list and create form load department IDs and names from `/api/departments`; subject requests send numeric `departmentId`. Optional subject fields are description, level and type.
+
+Checks: `npm run typecheck`, `npm run lint`, and `npm run build`. Run `npm start` to preview the production build. Production hosting needs to route `/api` to the backend, or set an appropriate `VITE_API_URL` before building.

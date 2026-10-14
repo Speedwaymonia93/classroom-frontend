@@ -5,8 +5,8 @@ import { ListView } from '@/components/refine-ui/views/list-view'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DEPARTMENT_OPTIONS } from '@/constants'
-import { Subject } from '@/index'
+import { useList } from "@refinedev/core"
+import type { Subject, Department } from '@/index'
 import { useTable } from '@refinedev/react-table'
 import { ColumnDef } from '@tanstack/react-table'
 
@@ -15,11 +15,12 @@ import React, { useMemo } from 'react'
 
 const SubjectsList = () => {
 
+  const { result: departments, query: departmentsQuery } = useList<Department>({ resource: "departments", pagination: { mode: "off" } });
   const [searchTerm, setSearchTerm] = React.useState('')
   const [selectedDepartment, setSelectedDepartment] = React.useState('all')  
   
-  const departmentFilters = selectedDepartment !== 'all' ? []:[
-    { field: 'department', operator: 'eq' as const, value: selectedDepartment }];
+  const departmentFilters = selectedDepartment === 'all' ? []:[
+    { field: 'departmentId', operator: 'eq' as const, value: Number(selectedDepartment) }];
   
   const searchFilter = searchTerm ? [
     { field: 'name', operator: 'contains' as const, value: searchTerm },
@@ -45,11 +46,11 @@ const SubjectsList = () => {
           filterFn: 'includesString',
         },
         {
-          id: 'department',
-          accessorKey: 'department',
+          id: 'departmentId',
+          accessorKey: 'departmentId',
           size: 200,
           header: () => <p className='column-title'>Department</p>,
-          cell: ({getValue}) => <Badge variant="secondary">{getValue<string>()}</Badge>,
+          cell: ({getValue}) => <Badge variant="secondary">{departments.data.find(department => department.id === getValue<number>())?.name ?? `Department ${getValue<number>()}`}</Badge>,
         },
         {
           id:'description',
@@ -57,8 +58,22 @@ const SubjectsList = () => {
           size: 300,
           header: () => <p className='column-title'>Description</p>,
           cell: ({getValue}) => <span className='truncate line-clamp-2'>{getValue<string>()}</span>,
+        },
+        {
+          id:'level',
+          accessorKey: 'level',
+          size: 100,
+          header: () => <p className='column-title'>Level</p>,
+          cell: ({getValue}) => <span className='text-foreground'>{getValue<string>()}</span>,
+        },
+        {
+          id:'type',
+          accessorKey: 'type',
+          size: 100,
+          header: () => <p className='column-title'>Type</p>,
+          cell: ({getValue}) => <span className='text-foreground'>{getValue<string>()}</span>,
         }
-      ],[]),
+      ],[departments.data]),
 
       refineCoreProps: {
         resource: 'subjects',
@@ -80,7 +95,7 @@ const SubjectsList = () => {
     <Breadcrumb />
     <h1 className='page-title'>Subjects List</h1>
     <div className='intro-row '>
-    <p className="">Quick acces to essemtial metrics and management tools </p>
+    <p className="">Browse and manage your subjects </p>
     <div className="actions-row">
       <div className="search-field">
         <SearchIcon className='search-icon' />
@@ -101,9 +116,9 @@ const SubjectsList = () => {
         <SelectContent>
           <SelectItem value="all">All Departments</SelectItem>
           {
-            DEPARTMENT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            departments.data.map((option) => (
+              <SelectItem key={option.id} value={String(option.id)}>
+                {option.name}
               </SelectItem>
             ))
           }
@@ -116,7 +131,8 @@ const SubjectsList = () => {
     </div>
     </div>
 
-    <DataTable table={subjectsTable} />
+    {departmentsQuery.isError && <p role="alert">Unable to load departments. <button onClick={() => void departmentsQuery.refetch()}>Retry</button></p>}
+    {subjectsTable.refineCore.tableQuery.isError ? <p role="alert">Unable to load subjects. <button onClick={() => void subjectsTable.refineCore.tableQuery.refetch()}>Retry</button></p> : <DataTable table={subjectsTable} />}
    </ListView>
   )
 }
