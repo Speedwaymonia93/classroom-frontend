@@ -53,19 +53,20 @@ function App() {
                   meta: {
                     label: "Subjects", icon: <Book />
                   },
-                }
+                },
+
                ]}
             >
               <Routes>
                 <Route
-                  path="/"
+                
                   element={
                     <Layout>
                       <Outlet />
                     </Layout>
                   }
                 >
-                  <Route element={<Dashboard />} />
+                  <Route element={<Dashboard />} path="/" />
                   <Route path="/subjects">
                     <Route index element={<SubjectsList />} />
                     <Route path="create" element={<SubjectsCreate />} />
